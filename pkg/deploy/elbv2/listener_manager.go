@@ -29,11 +29,11 @@ type ListenerManager interface {
 func NewDefaultListenerManager(elbv2Client services.ELBV2, trackingProvider tracking.Provider,
 	taggingManager TaggingManager, externalManagedTags []string, logger logr.Logger) *defaultListenerManager {
 	return &defaultListenerManager{
-		elbv2Client:                 elbv2Client,
-		trackingProvider:            trackingProvider,
-		taggingManager:              taggingManager,
-		externalManagedTags:         externalManagedTags,
-		logger:                      logger,
+		elbv2Client:         elbv2Client,
+		trackingProvider:    trackingProvider,
+		taggingManager:      taggingManager,
+		externalManagedTags: externalManagedTags,
+		logger:              logger,
 		waitLSExistencePollInterval: defaultWaitLSExistencePollInterval,
 		waitLSExistenceTimeout:      defaultWaitLSExistenceTimeout,
 	}
@@ -148,6 +148,12 @@ func (m *defaultListenerManager) updateSDKListenerWithSettings(ctx context.Conte
 // currentExtraCertificates is the current extra certificates, if it's nil, the current extra certificates will be fetched from AWS.
 func (m *defaultListenerManager) updateSDKListenerWithExtraCertificates(ctx context.Context, resLS *elbv2model.Listener,
 	sdkLS ListenerWithTags, isNewSDKListener bool) error {
+	// if TLS is not supported, we shouldn't update
+	if sdkLS.SslPolicy == nil {
+		m.logger.Info("SDK Listner doesn't have SSL Policy set, we skip updating extra certs.")
+		return nil
+	}
+
 	desiredExtraCertARNs := sets.NewString()
 	_, desiredExtraCerts := buildSDKCertificates(resLS.Spec.Certificates)
 	for _, cert := range desiredExtraCerts {
