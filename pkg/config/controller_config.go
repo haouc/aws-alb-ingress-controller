@@ -24,6 +24,7 @@ const (
 	flagBackendSecurityGroup                         = "backend-security-group"
 	flagEnableEndpointSlices                         = "enable-endpoint-slices"
 	flagDisableRestrictedSGRules                     = "disable-restricted-sg-rules"
+	flagUseTargetGroupArn                            = "specify-single-target-group"
 	defaultLogLevel                                  = "info"
 	defaultMaxConcurrentReconciles                   = 3
 	defaultMaxExponentialBackoffDelay                = time.Second * 1000
@@ -31,6 +32,7 @@ const (
 	defaultEnableBackendSG                           = true
 	defaultEnableEndpointSlices                      = false
 	defaultDisableRestrictedSGRules                  = false
+	defaultUseTargetGroupArn                         = false
 )
 
 var (
@@ -89,6 +91,9 @@ type ControllerConfig struct {
 
 	// DisableRestrictedSGRules specifies whether to use restricted security group rules
 	DisableRestrictedSGRules bool
+
+	// Use Target Group Arn to specify single target group
+	SpecifyTargetGroupArn bool
 }
 
 // BindFlags binds the command line flags to the fields in the config object
@@ -116,6 +121,8 @@ func (cfg *ControllerConfig) BindFlags(fs *pflag.FlagSet) {
 		"Enable EndpointSlices for IP targets instead of Endpoints")
 	fs.BoolVar(&cfg.DisableRestrictedSGRules, flagDisableRestrictedSGRules, defaultDisableRestrictedSGRules,
 		"Disable the usage of restricted security group rules")
+	fs.BoolVar(&cfg.SpecifyTargetGroupArn, flagUseTargetGroupArn, defaultUseTargetGroupArn,
+		"Specify a single target group")
 
 	cfg.AWSConfig.BindFlags(fs)
 	cfg.RuntimeConfig.BindFlags(fs)

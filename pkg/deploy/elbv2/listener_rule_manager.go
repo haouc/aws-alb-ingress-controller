@@ -26,7 +26,7 @@ type ListenerRuleManager interface {
 
 // NewDefaultListenerRuleManager constructs new defaultListenerRuleManager.
 func NewDefaultListenerRuleManager(elbv2Client services.ELBV2, trackingProvider tracking.Provider,
-	taggingManager TaggingManager, externalManagedTags []string, logger logr.Logger) *defaultListenerRuleManager {
+	taggingManager TaggingManager, externalManagedTags []string, specifySingleTGArn bool, logger logr.Logger) *defaultListenerRuleManager {
 	return &defaultListenerRuleManager{
 		elbv2Client:                 elbv2Client,
 		trackingProvider:            trackingProvider,
@@ -35,6 +35,7 @@ func NewDefaultListenerRuleManager(elbv2Client services.ELBV2, trackingProvider 
 		logger:                      logger,
 		waitLSExistencePollInterval: defaultWaitLSExistencePollInterval,
 		waitLSExistenceTimeout:      defaultWaitLSExistenceTimeout,
+		specifySingleTargetGroupArn: specifySingleTGArn,
 	}
 }
 
@@ -48,10 +49,11 @@ type defaultListenerRuleManager struct {
 
 	waitLSExistencePollInterval time.Duration
 	waitLSExistenceTimeout      time.Duration
+	specifySingleTargetGroupArn bool
 }
 
 func (m *defaultListenerRuleManager) Create(ctx context.Context, resLR *elbv2model.ListenerRule) (elbv2model.ListenerRuleStatus, error) {
-	req, err := buildSDKCreateListenerRuleInput(resLR.Spec)
+	req, err := buildSDKCreateListenerRuleInput(resLR.Spec, m.specifySingleTargetGroupArn)
 	if err != nil {
 		return elbv2model.ListenerRuleStatus{}, err
 	}
@@ -108,7 +110,7 @@ func (m *defaultListenerRuleManager) Delete(ctx context.Context, sdkLR ListenerR
 }
 
 func (m *defaultListenerRuleManager) updateSDKListenerRuleWithSettings(ctx context.Context, resLR *elbv2model.ListenerRule, sdkLR ListenerRuleWithTags) error {
-	desiredActions, err := buildSDKActions(resLR.Spec.Actions)
+	desiredActions, err := buildSDKActions(resLR.Spec.Actions, m.specifySingleTargetGroupArn)
 	if err != nil {
 		return err
 	}
@@ -153,7 +155,7 @@ func isSDKListenerRuleSettingsDrifted(lrSpec elbv2model.ListenerRuleSpec, sdkLR 
 	return false
 }
 
-func buildSDKCreateListenerRuleInput(lrSpec elbv2model.ListenerRuleSpec) (*elbv2sdk.CreateRuleInput, error) {
+func buildSDKCreateListenerRuleInput(lrSpec elbv2model.ListenerRuleSpec, specifyTGArn bool) (*elbv2sdk.CreateRuleInput, error) {
 	ctx := context.Background()
 	lsARN, err := lrSpec.ListenerARN.Resolve(ctx)
 	if err != nil {
@@ -162,7 +164,7 @@ func buildSDKCreateListenerRuleInput(lrSpec elbv2model.ListenerRuleSpec) (*elbv2
 	sdkObj := &elbv2sdk.CreateRuleInput{}
 	sdkObj.ListenerArn = awssdk.String(lsARN)
 	sdkObj.Priority = awssdk.Int64(lrSpec.Priority)
-	actions, err := buildSDKActions(lrSpec.Actions)
+	actions, err := buildSDKActions(lrSpec.Actions, specifyTGArn)
 	if err != nil {
 		return nil, err
 	}
