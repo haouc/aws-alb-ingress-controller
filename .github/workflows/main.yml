@@ -34,4 +34,4 @@ jobs:
 
       - name: Use pluto
         run: |
-          pluto detect-files -d .
+          pluto detect-files -d . --ignore-removals --ignore-deprecations
