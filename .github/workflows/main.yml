@@ -31,7 +31,7 @@ jobs:
 
       - name: Download Pluto
         run: |
-          wget https://github.com/FairwindsOps/pluto/releases/download/v5.4.0/pluto_5.4.0_linux_amd64.tar.gz && tar -zxvf pluto_5.4.0_linux_amd64.tar.gz
+          wget https://github.com/FairwindsOps/pluto/releases/download/v5.4.0/pluto_5.4.0_linux_amd64.tar.gz && tar -zxvf pluto_5.4.0_linux_amd64.tar.gz && sudo mv pluto /usr/bin
 
       - name: Use pluto
         run: |
