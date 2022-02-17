@@ -30,7 +30,9 @@ jobs:
         run: echo Hello, world!
 
       - name: Download Pluto
-        uses: FairwindsOps/pluto/github-action@master
+        run: |
+          curl https://github.com/FairwindsOps/pluto/releases/download/v5.4.0/pluto_5.4.0_linux_amd64.tar.gz -O \
+          tar -zxvf pluto_5.4.0_linux_amd64.tar.gz
 
       - name: Use pluto
         run: |
