@@ -35,8 +35,9 @@ jobs:
             AWS_REGION: us-west-2
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            METRIC_VALUE: 0
         with:
           metric-name: aws-load-balancer-controller-api-check
           run: |
-            VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
-          metric-value: ${{ VALUE }}
+            METRIC_VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
+          metric-value: $METRIC_VALUE
