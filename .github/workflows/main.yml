@@ -36,8 +36,7 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
-          group: aws-load-balancer-controller
-          stream: apis-check
-          retention: 14
+          metric-name: aws-load-balancer-controller-api-check
           run: |
-            pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l
+            VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
+          metric-value: ${{ VALUE }}
