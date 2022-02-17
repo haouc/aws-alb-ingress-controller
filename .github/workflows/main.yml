@@ -25,14 +25,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
       - name: Download Pluto
-        run: |
-          wget https://github.com/FairwindsOps/pluto/releases/download/v5.4.0/pluto_5.4.0_linux_amd64.tar.gz && tar -zxvf pluto_5.4.0_linux_amd64.tar.gz && sudo mv pluto /usr/bin
+        uses: FairwindsOps/pluto/github-action@master
 
       - name: Use pluto
-        run: |
-          pluto detect-files -d . --ignore-removals --ignore-deprecations
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          group: aws-load-balancer-controller
+          stream: apis-check
+          retention: 14
+          run: |
+            pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l
