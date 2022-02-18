@@ -28,6 +28,11 @@ jobs:
       - name: Download Pluto
         uses: FairwindsOps/pluto/github-action@master
 
+      - name: Use pluto
+        id: apis-count
+        run: |
+            echo ::set-env name=METRIC_VALUE::$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
+
       - name: Publish to CW
         uses: aws-actions/action-cloudwatch-metrics@main
         env:
@@ -39,4 +44,4 @@ jobs:
           run: |
               value=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
           metric-name: aws-load-balancer-controller-api-check
-          metric-value: ${{ value }}
+          metric-value: ${{ env.METRIC_VALUE }}
