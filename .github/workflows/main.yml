@@ -12,8 +12,7 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-env:
-  METRIC_VALUE: 0
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -29,10 +28,6 @@ jobs:
       - name: Download Pluto
         uses: FairwindsOps/pluto/github-action@master
 
-      - name: Use pluto
-        run: |
-            METRIC_VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
-
       - name: Publish to CW
         uses: aws-actions/action-cloudwatch-metrics@main
         env:
@@ -41,5 +36,7 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
         with:
+          run: |
+              value=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)
           metric-name: aws-load-balancer-controller-api-check
-          metric-value: $METRIC_VALUE
+          metric-value: ${{ value }}
