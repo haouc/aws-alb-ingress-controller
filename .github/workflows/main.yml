@@ -34,7 +34,7 @@ jobs:
       - name: Use pluto
         id: apis-count
         run: |
-            echo "METRIC_VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)"" >> $GITHUB_ENV
+            echo "METRIC_VALUE=$(pluto detect-files -d . --ignore-removals --ignore-deprecations | wc -l)" >> $GITHUB_ENV
 
       - name: Publish to CW
         uses: aws-actions/action-cloudwatch-metrics@main
