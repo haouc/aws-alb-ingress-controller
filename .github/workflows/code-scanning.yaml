@@ -29,7 +29,7 @@ jobs:
 
       - name: Build LBC Image
         run: |
-          make IMG=action-image:latest docker-scan
+          make IMG=action-image-lbc:latest docker-scan
 
       - name: Install trivy
         run: |
@@ -37,7 +37,7 @@ jobs:
 
       - name: Use Trivy to Scan
         run: |
-          echo "$(trivy image --format template --template '{{- $critical := 0 }}{{- $high := 0 }}{{- range . }}{{- range .Vulnerabilities }}{{- if  eq .Severity "CRITICAL" }}{{- $critical = add $critical 1 }}{{- end }}{{- if  eq .Severity "HIGH" }}{{- $high = add $high 1 }}{{- end }}{{- end }}{{- end }}HIGH_CVES={{ add $high  $critical }}' action-image:latest | tail -1)" >> $GITHUB_ENV
+          echo "$(trivy image --format template --template '{{- $critical := 0 }}{{- $high := 0 }}{{- range . }}{{- range .Vulnerabilities }}{{- if  eq .Severity "CRITICAL" }}{{- $critical = add $critical 1 }}{{- end }}{{- if  eq .Severity "HIGH" }}{{- $high = add $high 1 }}{{- end }}{{- end }}{{- end }}HIGH_CVES={{ add $high  $critical }}' action-image-lbc:latest | tail -1)" >> $GITHUB_ENV
 
       - name: Publish to CW
         uses: aws-actions/action-cloudwatch-metrics@main
