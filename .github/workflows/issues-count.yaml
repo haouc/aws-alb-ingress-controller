@@ -34,7 +34,7 @@ jobs:
       
       - name: Count Pull Requests
         run: |
-            echo "METRIC_VALUE_PULLS=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/pulls" | grep "requested_teams" | wc -l >> $GITHUB_ENV
+            echo "METRIC_VALUE_PULLS=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/pulls)" | grep "requested_teams" | wc -l >> $GITHUB_ENV
 
       - name: Publish Total Value to CW
         uses: aws-actions/action-cloudwatch-metrics@main
