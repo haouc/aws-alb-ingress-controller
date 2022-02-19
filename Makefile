@@ -63,3 +63,6 @@ release:
 		--tag $(IMG_REPO):$(IMG_TAG) \
 		--push \
 		--platform linux/amd64,linux/arm64
+
+docker-scan:
+	docker buildx build . --output type=docker --tag $(IMG) --platform linux/amd64
