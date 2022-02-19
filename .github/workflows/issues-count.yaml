@@ -2,15 +2,15 @@
 
 name: Issues-Count
 
-# on:
-#   # Triggers the workflow on push or pull request events but only for the master branch
-#   push:
-#     branches: [ master ]
-#   pull_request:
-#     branches: [ master ]
-on: 
-  schedule:
-   - cron: "0 * * * *"
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+# on: 
+#   schedule:
+#    - cron: "0 * * * *"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -36,6 +36,10 @@ jobs:
         run: |
             echo "METRIC_VALUE_PULLS=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/pulls | grep "requested_teams" | wc -l)" >> $GITHUB_ENV
 
+      - name: Count Issues Only
+        run: |
+            echo "METRIC_VALUE_ISSUES=$(expr $(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller | grep "open_issues_count" | cut -d ":" -f2 | awk '{$1=$1};1' | cut -d "," -f1) - $(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/pulls | grep "requested_teams" | wc -l))" >> $GITHUB_ENV
+            
       - name: Publish Total Value to CW
         uses: aws-actions/action-cloudwatch-metrics@main
         env:
@@ -57,3 +61,14 @@ jobs:
         with:
           metric-name: aws-load-balancer-controller-pull-requests
           metric-value: ${{ env.METRIC_VALUE_PULLS }}
+
+      - name: Publish Issue Only Count to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-issues-only
+          metric-value: ${{ env.METRIC_VALUE_ISSUES }}
