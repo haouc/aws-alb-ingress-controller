@@ -28,11 +28,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Count Issues
+      - name: Count Total Issues
         run: |
-            echo "METRIC_VALUE=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller | grep "open_issues_count" | cut -d ":" -f2 | awk '{$1=$1};1' | cut -d "," -f1)" >> $GITHUB_ENV
+            echo "METRIC_VALUE_TOTAL=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller | grep "open_issues_count" | cut -d ":" -f2 | awk '{$1=$1};1' | cut -d "," -f1)" >> $GITHUB_ENV
+      
+      - name: Count Pull Requests
+        run: |
+            echo "METRIC_VALUE_PULLS=$(curl https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/pulls" | grep "requested_teams" | wc -l >> $GITHUB_ENV
 
-      - name: Publish to CW
+      - name: Publish Total Value to CW
         uses: aws-actions/action-cloudwatch-metrics@main
         env:
             AWS_DEFAULT_REGION: us-west-2
@@ -41,4 +45,15 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
         with:
           metric-name: aws-load-balancer-controller-open-issues
-          metric-value: ${{ env.METRIC_VALUE }}
+          metric-value: ${{ env.METRIC_VALUE_TOTAL }}
+
+      - name: Publish Pulls Value to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-open-issues
+          metric-value: ${{ env.METRIC_VALUE_PULLS }}
