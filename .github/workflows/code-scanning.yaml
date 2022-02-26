@@ -37,9 +37,9 @@ jobs:
 
       - name: Use Trivy to Scan
         run: |
-          echo "$(trivy image --format template --template '{{- $critical := 0 }}{{- $high := 0 }}{{- range . }}{{- range .Vulnerabilities }}{{- if  eq .Severity "CRITICAL" }}{{- $critical = add $critical 1 }}{{- end }}{{- if  eq .Severity "HIGH" }}{{- $high = add $high 1 }}{{- end }}{{- end }}{{- end }}HIGH_CVES={{ add $high  $critical }}' action-image-lbc:latest | tail -1)" >> $GITHUB_ENV
+          echo "$(trivy image --format template --template '{{- $unknown := 0 }}{{- $low := 0 }}{{- $medium := 0 }}{{- $critical := 0 }}{{- $high := 0 }}{{- range . }}{{- range .Vulnerabilities }}{{- if  eq .Severity "CRITICAL" }}{{- $critical = add $critical 1 }}{{- end }}{{- if  eq .Severity "HIGH" }}{{- $high = add $high 1 }}{{- end }}{{- if  eq .Severity "UNKNOWN" }}{{- $unknown = add $unknown 1 }}{{- end }}{{- if  eq .Severity "LOW" }}{{- $low = add $low 1 }}{{- end }}{{- if  eq .Severity "MEDIUM" }}{{- $medium = add $medium 1 }}{{- end }}{{- end }}{{- end }}UNKNOWN_CVES={{ $unknown }},LOW_CVES={{ $low }},MEDIUM_CVES={{ $medium }},HIGH_CVES={{ $high }},CRITICAL_CVES={{ $critical }}' action-image-lbc:latest | tail -1 | tr ',' '\n')" >> $GITHUB_ENV
 
-      - name: Publish to CW
+      - name: Publish HIGH_CVES to CW
         uses: aws-actions/action-cloudwatch-metrics@main
         env:
             AWS_DEFAULT_REGION: us-west-2
@@ -47,5 +47,49 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
         with:
-          metric-name: aws-load-balancer-controller-code-scan
+          metric-name: aws-load-balancer-controller-code-scan-high
           metric-value: ${{ env.HIGH_CVES }}
+
+      - name: Publish CRITICAL_CVES to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-code-scan-critical
+          metric-value: ${{ env.CRITICAL_CVES }}
+
+      - name: Publish MEDIUM_CVES to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-code-scan-medium
+          metric-value: ${{ env.MEDIUM_CVES }}
+
+      - name: Publish LOW_CVES to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-code-scan-low
+          metric-value: ${{ env.LOW_CVES }}
+
+      - name: Publish UNKNOWN_CVES to CW
+        uses: aws-actions/action-cloudwatch-metrics@main
+        env:
+            AWS_DEFAULT_REGION: us-west-2
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}       
+        with:
+          metric-name: aws-load-balancer-controller-code-scan-unknown
+          metric-value: ${{ env.UNKNOWN_CVES }}
